@@ -1,7 +1,4 @@
 import os
-from dataclasses import dataclass, field
-from typing import Dict
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
@@ -10,269 +7,618 @@ from telegram.ext import (
     ContextTypes,
 )
 
-
-# =========================================================
-# THRONE — CONFIG
-# =========================================================
-
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-CREATOR_ID = int(os.getenv("CREATOR_ID", "0"))
+
+# ==================================================
+# THRONE CONFIG
+# ==================================================
+
+# Hozircha 0.
+# Keyin o'zingizning Telegram ID'ingizni qo'yamiz.
+CREATOR_ID = 0
+
+players = {}
+games = {}
 
 
-# =========================================================
-# PLAYER DATA
-# =========================================================
+# ==================================================
+# PLAYER
+# ==================================================
 
-@dataclass
-class Player:
-    user_id: int
-    username: str = ""
-    name: str = ""
-
-    level: int = 1
-    xp: int = 0
-
-    gold: int = 0
-    coin: int = 0
-    diamond: int = 0
-
-    elite_pass: bool = False
-
-    games: int = 0
-    wins: int = 0
-    losses: int = 0
-
-
-players: Dict[int, Player] = {}
-
-
-# =========================================================
-# PLAYER CREATION
-# =========================================================
-
-def get_player(user) -> Player:
+def get_player(user):
     user_id = user.id
 
     if user_id not in players:
-        creator = user_id == CREATOR_ID
-
-        players[user_id] = Player(
-            user_id=user_id,
-            username=user.username or "",
-            name=user.first_name or "Player",
-            gold=0,
-            coin=0,
-            diamond=0,
-            elite_pass=creator,
-        )
+        players[user_id] = {
+            "name": user.first_name or "Player",
+            "gold": 1000,
+            "coin": 100,
+            "diamond": 10,
+            "elite": False,
+            "level": 1,
+        }
 
     player = players[user_id]
 
-    # Always keep creator privileges active
+    # Faqat creator uchun cheksiz resurs
     if user_id == CREATOR_ID:
-        player.elite_pass = True
+        player["gold"] = float("inf")
+        player["coin"] = float("inf")
+        player["diamond"] = float("inf")
+        player["elite"] = True
 
     return player
 
 
-# =========================================================
-# RESOURCE DISPLAY
-# =========================================================
-
-def resource_value(player: Player, resource: str) -> str:
-    if player.user_id == CREATOR_ID:
-        return "∞"
-
-    values = {
-        "gold": player.gold,
-        "coin": player.coin,
-        "diamond": player.diamond,
-    }
-
-    return str(values.get(resource, 0))
-
-
-# =========================================================
+# ==================================================
 # MAIN MENU
-# =========================================================
+# ==================================================
 
 def main_menu():
     keyboard = [
         [
+            InlineKeyboardButton("🎮 O‘yinlar", callback_data="games"),
             InlineKeyboardButton("👤 Profil", callback_data="profile"),
-            InlineKeyboardButton("💰 Resurslar", callback_data="resources"),
         ],
         [
-            InlineKeyboardButton("🎮 O‘yin", callback_data="game"),
-            InlineKeyboardButton("🏰 Qirollik", callback_data="kingdom"),
+            InlineKeyboardButton("🏴 Klanlar", callback_data="clans"),
+            InlineKeyboardButton("❤️ Oila", callback_data="family"),
         ],
         [
-            InlineKeyboardButton("🎒 Inventar", callback_data="inventory"),
-            InlineKeyboardButton("🛒 Bozor", callback_data="market"),
+            InlineKeyboardButton("💰 Bozor", callback_data="market"),
+            InlineKeyboardButton("📊 Reyting", callback_data="rating"),
+        ],
+        [
+            InlineKeyboardButton("🎁 Mukofotlar", callback_data="rewards"),
+            InlineKeyboardButton("📖 Qoidalar", callback_data="rules"),
+        ],
+        [
+            InlineKeyboardButton("⚙️ Sozlamalar", callback_data="settings"),
         ],
     ]
 
     return InlineKeyboardMarkup(keyboard)
 
 
-# =========================================================
-# /START
-# =========================================================
+# ==================================================
+# PRIVATE START
+# ==================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     user = update.effective_user
+    chat = update.effective_chat
+
     player = get_player(user)
 
+    # GROUP
+    if chat.type in ["group", "supergroup"]:
+        await update.message.reply_text(
+            "👑 THRONE\n\n"
+            "⚔️ Qirollik o‘yini guruhga tayyor.\n\n"
+            "👑 O‘yinni boshlash uchun guruh administratori:\n"
+            "/startgame\n\n"
+            "📖 Qoidalar: /rules\n"
+            "👤 Profil: /profile"
+        )
+        return
+
+    # PRIVATE
     if user.id == CREATOR_ID:
         text = (
-            "👑 <b>THRONE</b>\n\n"
-            "𓆩 <b>CREATOR</b> 𓆪\n\n"
-            "Qirollik sizning qo‘lingizda.\n\n"
-            "🟡 Oltin: <b>∞</b>\n"
-            "🪙 Coin: <b>∞</b>\n"
-            "💎 Olmos: <b>∞</b>\n"
-            "⚜️ Elite Pass: <b>AKTIV</b>\n\n"
-            "⚔️ Taxt sizni kutmoqda."
+            "👑 THRONE\n\n"
+            "𓆩 ELITE 𓆪 YARATUVCHI\n\n"
+            "🟡 Oltin: ∞\n"
+            "🪙 Coin: ∞\n"
+            "💎 Olmos: ∞\n"
+            "⚜️ Elite Pass: AKTIV ∞\n\n"
+            "Qirollik sening qo‘lingda."
         )
     else:
         text = (
-            "👑 <b>THRONE</b>\n\n"
+            "👑 THRONE\n\n"
             "Qirollik seni kutmoqda.\n\n"
-            "⚔️ Taxt uchun kurash.\n"
-            "🕶️ Soya ichidagi xiyonat.\n"
-            "👑 Qirollik taqdiri sening qaroringga bog‘liq."
+            f"👤 {player['name']}\n"
+            f"⭐ Level: {player['level']}\n"
+            f"🟡 Oltin: {player['gold']}\n"
+            f"🪙 Coin: {player['coin']}\n"
+            f"💎 Olmos: {player['diamond']}\n\n"
+            "⚔️ Taxt uchun kurash boshlanadi."
         )
 
     await update.message.reply_text(
         text,
-        parse_mode="HTML",
-        reply_markup=main_menu(),
+        reply_markup=main_menu()
     )
 
 
-# =========================================================
+# ==================================================
 # PROFILE
-# =========================================================
+# ==================================================
 
 async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    player = get_player(user)
 
+    gold = "∞" if user.id == CREATOR_ID else player["gold"]
+    coin = "∞" if user.id == CREATOR_ID else player["coin"]
+    diamond = "∞" if user.id == CREATOR_ID else player["diamond"]
+
+    if user.id == CREATOR_ID:
+        elite = "AKTIV ∞"
+    else:
+        elite = "AKTIV" if player["elite"] else "FAOL EMAS"
+
+    text = (
+        "👤 PROFIL\n\n"
+        f"Ism: {player['name']}\n"
+        f"⭐ Level: {player['level']}\n\n"
+        f"🟡 Oltin: {gold}\n"
+        f"🪙 Coin: {coin}\n"
+        f"💎 Olmos: {diamond}\n"
+        f"⚜️ Elite Pass: {elite}"
+    )
+
+    # Callback orqali
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+
+        await query.edit_message_text(
+            text,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("⬅️ Orqaga", callback_data="home")]
+            ])
+        )
+
+    # Command orqali
+    elif update.message:
+        await update.message.reply_text(text)
+
+
+# ==================================================
+# GROUP PROFILE
+# ==================================================
+
+async def group_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    player = get_player(user)
+
+    gold = "∞" if user.id == CREATOR_ID else player["gold"]
+    coin = "∞" if user.id == CREATOR_ID else player["coin"]
+    diamond = "∞" if user.id == CREATOR_ID else player["diamond"]
+
+    await update.message.reply_text(
+        "👤 PROFIL\n\n"
+        f"Ism: {player['name']}\n"
+        f"⭐ Level: {player['level']}\n"
+        f"🟡 Oltin: {gold}\n"
+        f"🪙 Coin: {coin}\n"
+        f"💎 Olmos: {diamond}"
+    )
+
+
+# ==================================================
+# GROUP GAME
+# ==================================================
+
+async def start_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    user = update.effective_user
+
+    if chat.type not in ["group", "supergroup"]:
+        await update.message.reply_text(
+            "⚠️ Bu buyruq faqat guruhda ishlaydi."
+        )
+        return
+
+    member = await context.bot.get_chat_member(
+        chat.id,
+        user.id
+    )
+
+    if member.status not in ["administrator", "creator"]:
+        await update.message.reply_text(
+            "🔒 O‘yinni faqat guruh administratori boshlashi mumkin."
+        )
+        return
+
+    if chat.id in games and games[chat.id]["active"]:
+        await update.message.reply_text(
+            "⚔️ Bu guruhda o‘yin allaqachon davom etmoqda."
+        )
+        return
+
+    games[chat.id] = {
+        "active": True,
+        "players": [],
+        "started_by": user.id,
+    }
+
+    await update.message.reply_text(
+        "👑 THRONE — QIROLLIK O‘YINI\n\n"
+        "⚔️ O‘yin boshlandi!\n\n"
+        "🏰 Qirollik o‘yinchilarga tayyor.\n"
+        "👥 Ishtirok etish uchun:\n"
+        "/join\n\n"
+        "⏳ Qirollik eshiklari ochildi."
+    )
+
+
+# ==================================================
+# JOIN GAME
+# ==================================================
+
+async def join_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    user = update.effective_user
+
+    if chat.type not in ["group", "supergroup"]:
+        await update.message.reply_text(
+            "⚠️ Bu buyruq faqat guruhda ishlaydi."
+        )
+        return
+
+    if chat.id not in games or not games[chat.id]["active"]:
+        await update.message.reply_text(
+            "⚠️ Hozir guruhda faol o‘yin yo‘q.\n\n"
+            "Admin /startgame orqali o‘yinni boshlashi mumkin."
+        )
+        return
+
+    game_players = games[chat.id]["players"]
+
+    if user.id in game_players:
+        await update.message.reply_text(
+            "✅ Siz allaqachon o‘yindasiz."
+        )
+        return
+
+    game_players.append(user.id)
+
+    await update.message.reply_text(
+        f"⚔️ {user.first_name} qirollikka qo‘shildi!\n\n"
+        f"👥 O‘yinchilar soni: {len(game_players)}"
+    )
+
+
+# ==================================================
+# STOP GAME
+# ==================================================
+
+async def stop_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    user = update.effective_user
+
+    if chat.type not in ["group", "supergroup"]:
+        return
+
+    member = await context.bot.get_chat_member(
+        chat.id,
+        user.id
+    )
+
+    if member.status not in ["administrator", "creator"]:
+        await update.message.reply_text(
+            "🔒 O‘yinni faqat administrator to‘xtata oladi."
+        )
+        return
+
+    if chat.id not in games or not games[chat.id]["active"]:
+        await update.message.reply_text(
+            "⚠️ Faol o‘yin yo‘q."
+        )
+        return
+
+    games[chat.id]["active"] = False
+
+    await update.message.reply_text(
+        "🛑 THRONE\n\n"
+        "Qirollik o‘yini administrator tomonidan to‘xtatildi."
+    )
+
+
+# ==================================================
+# RULES
+# ==================================================
+
+async def rules_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "📖 THRONE QOIDALARI\n\n"
+        "1️⃣ O‘yinni faqat guruh administratori boshlaydi.\n"
+        "2️⃣ O‘yinchilar /join orqali qo‘shiladi.\n"
+        "3️⃣ O‘yin davomida barcha qarorlar qirollik tizimi orqali amalga oshiriladi.\n"
+        "4️⃣ Adolatli o‘yin va guruh qoidalariga rioya qilish talab qilinadi.\n\n"
+        "👑 THRONE"
+    )
+
+
+# ==================================================
+# GAMES MENU
+# ==================================================
+
+async def games(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "⚔️ Qirollik o‘yini",
+                callback_data="kingdom"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "⚔️ Duel",
+                callback_data="duel"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🏆 Turnirlar",
+                callback_data="tournaments"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "⬅️ Orqaga",
+                callback_data="home"
+            )
+        ],
+    ]
+
+    await query.edit_message_text(
+        "🎮 O‘YINLAR\n\n"
+        "Qirollikdagi o‘yin rejimini tanlang:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+
+# ==================================================
+# KINGDOM
+# ==================================================
+
+async def kingdom(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    await query.edit_message_text(
+        "👑 QIROLLIK O‘YINI\n\n"
+        "⚔️ Qirollik uchun jangga tayyorlaning.\n\n"
+        "O‘yin guruhda administrator tomonidan boshlanadi.",
+        reply_markup=InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(
+                    "⬅️ Orqaga",
+                    callback_data="games"
+                )
+            ]
+        ])
+    )
+
+
+# ==================================================
+# DUEL
+# ==================================================
+
+async def duel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    await query.edit_message_text(
+        "⚔️ DUEL\n\n"
+        "Raqibingizni tanlang va kuchingizni sinang.",
+        reply_markup=InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(
+                    "⬅️ Orqaga",
+                    callback_data="games"
+                )
+            ]
+        ])
+    )
+
+
+# ==================================================
+# TOURNAMENTS
+# ==================================================
+
+async def tournaments(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    await query.edit_message_text(
+        "🏆 TURNIRLAR\n\n"
+        "Hozircha faol turnir mavjud emas.",
+        reply_markup=InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(
+                    "⬅️ Orqaga",
+                    callback_data="games"
+                )
+            ]
+        ])
+    )
+
+
+# ==================================================
+# SIMPLE PAGES
+# ==================================================
+
+async def simple_page(update, title, text):
+    query = update.callback_query
+    await query.answer()
+
+    await query.edit_message_text(
+        f"{title}\n\n{text}",
+        reply_markup=InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(
+                    "⬅️ Orqaga",
+                    callback_data="home"
+                )
+            ]
+        ])
+    )
+
+
+async def clans(update, context):
+    await simple_page(
+        update,
+        "🏴 KLANLAR",
+        "Qirollikdagi klanlaringiz shu yerda boshqariladi."
+    )
+
+
+async def family(update, context):
+    await simple_page(
+        update,
+        "❤️ OILA",
+        "Qirollikdagi oilaviy tizim."
+    )
+
+
+async def market(update, context):
+    await simple_page(
+        update,
+        "💰 BOZOR",
+        "Oltin, coin, olmos va boshqa buyumlar bozori."
+    )
+
+
+async def rating(update, context):
+    await simple_page(
+        update,
+        "📊 REYTING",
+        "Eng kuchli qirolliklar va o‘yinchilar reytingi."
+    )
+
+
+async def rewards(update, context):
+    await simple_page(
+        update,
+        "🎁 MUKOFOTLAR",
+        "Kunlik va maxsus mukofotlar shu yerda."
+    )
+
+
+async def rules_page(update, context):
+    await simple_page(
+        update,
+        "📖 QOIDALAR",
+        "THRONE qoidalari shu yerda."
+    )
+
+
+async def settings(update, context):
+    await simple_page(
+        update,
+        "⚙️ SOZLAMALAR",
+        "Profil va o‘yin sozlamalari."
+    )
+
+
+# ==================================================
+# HOME
+# ==================================================
+
+async def home(update, context):
     query = update.callback_query
     await query.answer()
 
     user = query.from_user
     player = get_player(user)
 
-    text = (
-        f"👤 <b>{player.name}</b>\n\n"
-        f"⭐ Level: <b>{player.level}</b>\n"
-        f"✨ XP: <b>{player.xp}</b>\n\n"
-        f"🎮 O‘yinlar: <b>{player.games}</b>\n"
-        f"🏆 G‘alabalar: <b>{player.wins}</b>\n"
-        f"☠️ Mag‘lubiyatlar: <b>{player.losses}</b>"
-    )
-
     await query.edit_message_text(
-        text,
-        parse_mode="HTML",
-        reply_markup=main_menu(),
+        "👑 THRONE\n\n"
+        "Qirollik seni kutmoqda.\n\n"
+        f"👤 {player['name']}\n"
+        f"⭐ Level: {player['level']}",
+        reply_markup=main_menu()
     )
 
 
-# =========================================================
-# RESOURCES
-# =========================================================
+# ==================================================
+# CALLBACK HANDLER
+# ==================================================
 
-async def resources(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
+async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    data = query.data
 
-    player = get_player(query.from_user)
-
-    text = (
-        "💰 <b>RESURSLAR</b>\n\n"
-        f"🟡 Oltin: <b>{resource_value(player, 'gold')}</b>\n"
-        f"🪙 Coin: <b>{resource_value(player, 'coin')}</b>\n"
-        f"💎 Olmos: <b>{resource_value(player, 'diamond')}</b>\n"
-        f"⚜️ Elite Pass: "
-        f"<b>{'AKTIV' if player.elite_pass else 'FAOL EMAS'}</b>"
-    )
-
-    await query.edit_message_text(
-        text,
-        parse_mode="HTML",
-        reply_markup=main_menu(),
-    )
-
-
-# =========================================================
-# OTHER MENU BUTTONS
-# =========================================================
-
-async def simple_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    query = update.callback_query
-    await query.answer()
-
-    pages = {
-        "game": "🎮 <b>O‘YIN</b>\n\nYangi qirollik o‘yini tez orada ishga tushadi.",
-        "kingdom": "🏰 <b>QIROLLIK</b>\n\nSizning qirolligingiz hali qurilmoqda.",
-        "inventory": "🎒 <b>INVENTAR</b>\n\nInventaringiz hozircha bo‘sh.",
-        "market": "🛒 <b>BOZOR</b>\n\nBozor tez orada ochiladi.",
+    handlers = {
+        "home": home,
+        "profile": profile,
+        "games": games,
+        "kingdom": kingdom,
+        "duel": duel,
+        "tournaments": tournaments,
+        "clans": clans,
+        "family": family,
+        "market": market,
+        "rating": rating,
+        "rewards": rewards,
+        "rules": rules_page,
+        "settings": settings,
     }
 
-    text = pages.get(query.data, "THRONE")
+    handler = handlers.get(data)
 
-    await query.edit_message_text(
-        text,
-        parse_mode="HTML",
-        reply_markup=main_menu(),
-    )
-
-
-# =========================================================
-# ERROR CHECK
-# =========================================================
-
-async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
-    print("ERROR:", context.error)
+    if handler:
+        await handler(update, context)
+    else:
+        await query.answer(
+            "Bu funksiya hali tayyorlanmoqda."
+        )
 
 
-# =========================================================
-# RUN BOT
-# =========================================================
+# ==================================================
+# MAIN
+# ==================================================
 
 def main():
-
     if not BOT_TOKEN:
-        raise RuntimeError("BOT_TOKEN topilmadi.")
-
-    if CREATOR_ID == 0:
-        raise RuntimeError("CREATOR_ID topilmadi.")
-
-    application = Application.builder().token(BOT_TOKEN).build()
-
-    application.add_handler(CommandHandler("start", start))
-
-    application.add_handler(
-        CallbackQueryHandler(profile, pattern="^profile$")
-    )
-
-    application.add_handler(
-        CallbackQueryHandler(resources, pattern="^resources$")
-    )
-
-    application.add_handler(
-        CallbackQueryHandler(
-            simple_page,
-            pattern="^(game|kingdom|inventory|market)$"
+        raise RuntimeError(
+            "BOT_TOKEN topilmadi. Railway Variables ichida BOT_TOKEN bo‘lishi kerak."
         )
+
+    application = (
+        Application.builder()
+        .token(BOT_TOKEN)
+        .build()
     )
 
-    application.add_error_handler(error_handler)
+    # Private + group
+    application.add_handler(
+        CommandHandler("start", start)
+    )
 
-    print("👑 THRONE BOT IS RUNNING...")
+    application.add_handler(
+        CommandHandler("profile", group_profile)
+    )
+
+    application.add_handler(
+        CommandHandler("startgame", start_game)
+    )
+
+    application.add_handler(
+        CommandHandler("join", join_game)
+    )
+
+    application.add_handler(
+        CommandHandler("stopgame", stop_game)
+    )
+
+    application.add_handler(
+        CommandHandler("rules", rules_command)
+    )
+
+    # Buttons
+    application.add_handler(
+        CallbackQueryHandler(callback_handler)
+    )
+
+    print("👑 THRONE ishga tushdi...")
 
     application.run_polling()
 
