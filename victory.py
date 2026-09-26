@@ -5,17 +5,14 @@ from typing import Dict, List, Optional, Set
 # THRONE — VICTORY ENGINE
 # ==========================================
 
-SIDE_THRONE = "throne"
-SIDE_DARK = "dark"
-SIDE_REBEL = "rebel"
-SIDE_INDEPENDENT = "independent"
-
+SIDE_TAXT = "Taxt"
+SIDE_QORA = "Qora"
+SIDE_ISYON = "Isyon"
+SIDE_MUSTAQIL = "Mustaqil"
 
 GAME_RUNNING = "running"
 GAME_FINISHED = "finished"
 
-
-# Mustaqil rollarning maxsus g‘alaba shartlari
 INDEPENDENT_ROLES = {
     "madman",
     "revenant",
@@ -24,11 +21,11 @@ INDEPENDENT_ROLES = {
 }
 
 
-def create_victory_state() -> Dict:
-    """
-    O‘yin g‘alaba holatini yaratadi.
-    """
+# ==========================================
+# STATE
+# ==========================================
 
+def create_victory_state() -> Dict:
     return {
         "game_status": GAME_RUNNING,
         "winner_side": None,
@@ -38,33 +35,55 @@ def create_victory_state() -> Dict:
     }
 
 
-def normalize_side(side: Optional[str]) -> str:
-    """
-    Rollar uchun tomon nomlarini standartlashtiradi.
-    """
+# ==========================================
+# HELPERS
+# ==========================================
 
+def normalize_side(side: Optional[str]) -> str:
     if not side:
         return ""
 
-    return side.strip().lower()
+    value = side.strip().lower()
+
+    aliases = {
+        "taxt": SIDE_TAXT,
+        "throne": SIDE_TAXT,
+        "qora": SIDE_QORA,
+        "dark": SIDE_QORA,
+        "isyon": SIDE_ISYON,
+        "rebel": SIDE_ISYON,
+        "mustaqil": SIDE_MUSTAQIL,
+        "independent": SIDE_MUSTAQIL,
+    }
+
+    return aliases.get(value, side.strip())
+
+
+def is_alive(player: Dict) -> bool:
+    return player.get("alive") is not False
+
+
+def alive_players(players: List[Dict]) -> List[Dict]:
+    return [
+        player
+        for player in players
+        if is_alive(player)
+    ]
 
 
 def alive_players_by_side(
     players: List[Dict],
 ) -> Dict[str, List[Dict]]:
-    """
-    Tirik o‘yinchilarni tomonlarga ajratadi.
-    """
 
     result = {
-        SIDE_THRONE: [],
-        SIDE_DARK: [],
-        SIDE_REBEL: [],
-        SIDE_INDEPENDENT: [],
+        SIDE_TAXT: [],
+        SIDE_QORA: [],
+        SIDE_ISYON: [],
+        SIDE_MUSTAQIL: [],
     }
 
     for player in players:
-        if player.get("alive") is False:
+        if not is_alive(player):
             continue
 
         side = normalize_side(
@@ -77,15 +96,14 @@ def alive_players_by_side(
     return result
 
 
-def alive_role_keys(players: List[Dict]) -> Set[str]:
-    """
-    Tirik mustaqil rollarni qaytaradi.
-    """
+def alive_role_keys(
+    players: List[Dict],
+) -> Set[str]:
 
     return {
         player.get("role_key")
         for player in players
-        if player.get("alive") is not False
+        if is_alive(player)
         and player.get("role_key")
     }
 
@@ -94,13 +112,16 @@ def count_alive_side(
     players: List[Dict],
     side: str,
 ) -> int:
-    side = normalize_side(side)
+
+    normalized = normalize_side(side)
 
     return sum(
         1
         for player in players
-        if player.get("alive") is not False
-        and normalize_side(player.get("side")) == side
+        if is_alive(player)
+        and normalize_side(
+            player.get("side")
+        ) == normalized
     )
 
 
@@ -108,19 +129,20 @@ def get_alive_player(
     players: List[Dict],
     user_id: int,
 ) -> Optional[Dict]:
-    """
-    Tirik o‘yinchini ID bo‘yicha topadi.
-    """
 
     for player in players:
         if (
             player.get("user_id") == user_id
-            and player.get("alive") is not False
+            and is_alive(player)
         ):
             return player
 
     return None
 
+
+# ==========================================
+# INDEPENDENT VICTORIES
+# ==========================================
 
 def check_madman_victory(
     players: List[Dict],
@@ -128,24 +150,26 @@ def check_madman_victory(
 ) -> Optional[Dict]:
     """
     🃏 Telba:
-    Agar o‘zini ovoz bilan chiqarishga erishsa,
-    maxsus g‘alaba oladi.
+    Ovoz orqali chiqarilsa darhol maxsus g‘alaba oladi.
     """
 
     if eliminated_player_id is None:
         return None
 
     for player in players:
+
         if player.get("role_key") != "madman":
             continue
 
-        if player.get("user_id") == eliminated_player_id:
-            return {
-                "side": SIDE_INDEPENDENT,
-                "role_key": "madman",
-                "user_id": eliminated_player_id,
-                "reason": "madman_voted_out",
-            }
+        if player.get("user_id") != eliminated_player_id:
+            continue
+
+        return {
+            "side": SIDE_MUSTAQIL,
+            "role_key": "madman",
+            "user_id": eliminated_player_id,
+            "reason": "madman_voted_out",
+        }
 
     return None
 
@@ -153,20 +177,18 @@ def check_madman_victory(
 def check_revenant_victory(
     players: List[Dict],
 ) -> Optional[Dict]:
-    """
-    💀 Qasoskor ruh uchun maxsus yakuniy shart.
-
-    Asosiy maxsus effekt keyinchalik game state
-    orqali boyitiladi.
-    """
 
     for player in players:
+
         if player.get("role_key") != "revenant":
             continue
 
-        if player.get("revenant_objective_complete") is True:
+        if player.get(
+            "revenant_objective_complete"
+        ) is True:
+
             return {
-                "side": SIDE_INDEPENDENT,
+                "side": SIDE_MUSTAQIL,
                 "role_key": "revenant",
                 "user_id": player.get("user_id"),
                 "reason": "revenant_objective_complete",
@@ -178,18 +200,18 @@ def check_revenant_victory(
 def check_lone_hunter_victory(
     players: List[Dict],
 ) -> Optional[Dict]:
-    """
-    🐺 Yolg‘iz ovchi:
-    Maxsus yakka maqsad bajarilganda g‘alaba.
-    """
 
     for player in players:
+
         if player.get("role_key") != "lone_hunter":
             continue
 
-        if player.get("lone_hunter_objective_complete") is True:
+        if player.get(
+            "lone_hunter_objective_complete"
+        ) is True:
+
             return {
-                "side": SIDE_INDEPENDENT,
+                "side": SIDE_MUSTAQIL,
                 "role_key": "lone_hunter",
                 "user_id": player.get("user_id"),
                 "reason": "lone_hunter_objective_complete",
@@ -201,18 +223,18 @@ def check_lone_hunter_victory(
 def check_shadow_king_victory(
     players: List[Dict],
 ) -> Optional[Dict]:
-    """
-    👤 Soyadagi qirol:
-    Maxsus yashirin maqsad bajarilganda g‘alaba.
-    """
 
     for player in players:
+
         if player.get("role_key") != "shadow_king":
             continue
 
-        if player.get("shadow_king_objective_complete") is True:
+        if player.get(
+            "shadow_king_objective_complete"
+        ) is True:
+
             return {
-                "side": SIDE_INDEPENDENT,
+                "side": SIDE_MUSTAQIL,
                 "role_key": "shadow_king",
                 "user_id": player.get("user_id"),
                 "reason": "shadow_king_objective_complete",
@@ -225,9 +247,6 @@ def check_independent_victories(
     players: List[Dict],
     eliminated_player_id: Optional[int] = None,
 ) -> List[Dict]:
-    """
-    Barcha mustaqil rollarning g‘alaba shartlarini tekshiradi.
-    """
 
     winners = []
 
@@ -257,96 +276,348 @@ def check_independent_victories(
     return winners
 
 
+# ==========================================
+# MAIN SIDE VICTORY
+# ==========================================
+
 def check_main_side_victory(
     players: List[Dict],
 ) -> Optional[Dict]:
     """
-    Asosiy tomonlarning g‘alaba shartlarini tekshiradi.
+    Asosiy tomonlarning g‘alaba shartlari.
 
-    THRONE:
-    Qora va Isyon tomonlari qolmasa.
+    TAxt:
+        Qora va Isyon yo‘q qilinsa.
 
-    QORA:
-    Qora kuchi Taxt tomoniga teng yoki ustun
-    bo‘lib, Isyon tomoni xavf tug‘dirmasa.
+    Qora:
+        Qora kuchi qolgan dushman kuchlariga
+        teng yoki ustun bo‘lsa.
 
-    ISYON:
-    Taxt tomoni ustidan nazoratni qo‘lga olganida.
+    Isyon:
+        Taxt va Qora tomonlari qolmasa.
     """
 
     sides = alive_players_by_side(players)
 
-    throne_count = len(sides[SIDE_THRONE])
-    dark_count = len(sides[SIDE_DARK])
-    rebel_count = len(sides[SIDE_REBEL])
+    taxt_count = len(sides[SIDE_TAXT])
+    qora_count = len(sides[SIDE_QORA])
+    isyon_count = len(sides[SIDE_ISYON])
 
-    # Taxt tomonining g‘alabasi
-    if dark_count == 0 and rebel_count == 0 and throne_count > 0:
+    # ======================================
+    # TAХT G‘ALABASI
+    # ======================================
+
+    if (
+        taxt_count > 0
+        and qora_count == 0
+        and isyon_count == 0
+    ):
+
         return {
-            "side": SIDE_THRONE,
+            "side": SIDE_TAXT,
             "reason": "all_enemy_factions_eliminated",
         }
 
-    # Qora tomonining g‘alabasi
-    if dark_count > 0:
-        enemy_count = throne_count + rebel_count
+    # ======================================
+    # QORA G‘ALABASI
+    # ======================================
 
+    if qora_count > 0:
+
+        enemy_count = (
+            taxt_count
+            + isyon_count
+        )
+
+        # Qora butun raqiblarni yo‘q qilgan
         if enemy_count == 0:
+
             return {
-                "side": SIDE_DARK,
+                "side": SIDE_QORA,
                 "reason": "dark_side_controls_kingdom",
             }
 
-        if dark_count >= enemy_count:
+        # Qora son jihatdan teng yoki ustun
+        if qora_count >= enemy_count:
+
             return {
-                "side": SIDE_DARK,
+                "side": SIDE_QORA,
                 "reason": "dark_side_reaches_parity",
             }
 
-    # Isyon tomonining g‘alabasi
-    if rebel_count > 0:
-        enemy_count = throne_count + dark_count
+    # ======================================
+    # ISYON G‘ALABASI
+    # ======================================
+
+    if isyon_count > 0:
+
+        enemy_count = (
+            taxt_count
+            + qora_count
+        )
 
         if enemy_count == 0:
+
             return {
-                "side": SIDE_REBEL,
+                "side": SIDE_ISYON,
                 "reason": "rebels_control_kingdom",
             }
 
     return None
 
 
+# ==========================================
+# COMPLETE VICTORY CHECK
+# ==========================================
+
 def check_victory(
     players: List[Dict],
     eliminated_player_id: Optional[int] = None,
 ) -> Dict:
-    """
-    Butun o‘yin g‘alaba tizimini tekshiradi.
-
-    Mustaqil rol g‘alabasi alohida qayd qilinadi.
-    """
 
     if not players:
+
         return {
             "finished": False,
+            "game_status": GAME_RUNNING,
             "winner_side": None,
             "winner_players": [],
             "independent_winners": [],
             "reason": None,
         }
 
-    independent_winners = check_independent_victories(
-        players,
-        eliminated_player_id,
+    independent_winners = (
+        check_independent_victories(
+            players,
+            eliminated_player_id,
+        )
     )
 
-    main_winner = check_main_side_victory(players)
+    main_winner = check_main_side_victory(
+        players
+    )
+
+    # ======================================
+    # MAIN SIDE WIN
+    # ======================================
 
     if main_winner:
+
         winner_side = main_winner["side"]
 
         winner_players = [
             player.get("user_id")
             for player in players
-            if player.get("alive") is not False
-            and normalize_side(player.get("side
+            if is_alive(player)
+            and normalize_side(
+                player.get("side")
+            ) == winner_side
+        ]
+
+        return {
+            "finished": True,
+            "game_status": GAME_FINISHED,
+            "winner_side": winner_side,
+            "winner_players": winner_players,
+            "independent_winners": independent_winners,
+            "reason": main_winner["reason"],
+        }
+
+    # ======================================
+    # INDEPENDENT WIN
+    # ======================================
+
+    if independent_winners:
+
+        winner_players = [
+            winner.get("user_id")
+            for winner in independent_winners
+            if winner.get("user_id") is not None
+        ]
+
+        return {
+            "finished": True,
+            "game_status": GAME_FINISHED,
+            "winner_side": SIDE_MUSTAQIL,
+            "winner_players": winner_players,
+            "independent_winners": independent_winners,
+            "reason": "independent_victory",
+        }
+
+    # ======================================
+    # GAME CONTINUES
+    # ======================================
+
+    return {
+        "finished": False,
+        "game_status": GAME_RUNNING,
+        "winner_side": None,
+        "winner_players": [],
+        "independent_winners": [],
+        "reason": None,
+    }
+
+
+# ==========================================
+# RESULT MESSAGE
+# ==========================================
+
+def build_victory_message(
+    result: Dict,
+    player_names: Optional[Dict[int, str]] = None,
+) -> str:
+
+    names = player_names or {}
+
+    if not result.get("finished"):
+        return (
+            "⚔️ <b>THRONE</b>\n\n"
+            "🏰 O‘yin hali davom etmoqda."
+        )
+
+    winner_side = result.get(
+        "winner_side"
+    )
+
+    winner_players = result.get(
+        "winner_players",
+        [],
+    )
+
+    if winner_side == SIDE_TAXT:
+
+        title = "👑 TAХT G‘ALABA QOZONDI"
+
+    elif winner_side == SIDE_QORA:
+
+        title = "🩸 QORA KUCHLAR G‘ALABA QOZONDI"
+
+    elif winner_side == SIDE_ISYON:
+
+        title = "⚔️ ISYON G‘ALABA QOZONDI"
+
+    elif winner_side == SIDE_MUSTAQIL:
+
+        title = "🃏 MUSTAQIL G‘ALABA"
+
+    else:
+
+        title = "👑 THRONE — O‘YIN YAKUNLANDI"
+
+    lines = [
+        "🏰 <b>THRONE — O‘YIN YAKUNLANDI</b>",
+        "",
+        title,
+        "",
+    ]
+
+    if winner_players:
+
+        lines.append(
+            "🏆 G‘oliblar:"
+        )
+
+        for user_id in winner_players:
+
+            name = names.get(
+                user_id,
+                f"Player {user_id}",
+            )
+
+            lines.append(
+                f"👤 {name}"
+            )
+
+    independent_winners = result.get(
+        "independent_winners",
+        [],
+    )
+
+    if independent_winners:
+
+        lines.extend(
+            [
+                "",
+                "✨ <b>MAXSUS G‘ALABALAR</b>",
+            ]
+        )
+
+        for winner in independent_winners:
+
+            user_id = winner.get(
+                "user_id"
+            )
+
+            role_key = winner.get(
+                "role_key"
+            )
+
+            name = names.get(
+                user_id,
+                f"Player {user_id}",
+            )
+
+            lines.append(
+                f"🎭 {name} — {role_key}"
+            )
+
+    lines.extend(
+        [
+            "",
+            "👑 THRONE’da har bir qaror tarixga aylandi.",
+        ]
+    )
+
+    return "\n".join(lines)
+
+
+# ==========================================
+# SIMPLE HELPERS
+# ==========================================
+
+def game_finished(
+    result: Dict,
+) -> bool:
+
+    return result.get(
+        "finished",
+        False,
+    )
+
+
+def get_winner_side(
+    result: Dict,
+) -> Optional[str]:
+
+    return result.get(
+        "winner_side"
+    )
+
+
+def get_winner_players(
+    result: Dict,
+) -> List[int]:
+
+    return result.get(
+        "winner_players",
+        [],
+    )
+
+
+def get_independent_winners(
+    result: Dict,
+) -> List[Dict]:
+
+    return result.get(
+        "independent_winners",
+        [],
+    )
+
+
+def get_victory_reason(
+    result: Dict,
+) -> Optional[str]:
+
+    return result.get(
+        "reason"
+        )
