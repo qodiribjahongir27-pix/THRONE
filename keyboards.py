@@ -41,6 +41,8 @@ def main_menu():
             ],
         ]
     )
+
+
 def language_menu():
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -61,3 +63,74 @@ def language_menu():
             ],
         ]
     )
+
+
+def roles_menu():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="👑 TAHT TOMONI",
+                    callback_data="role_side_throne"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🩸 QORA TOMON",
+                    callback_data="role_side_dark"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="⚔️ ISYON TOMONI",
+                    callback_data="role_side_rebel"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="☠️ MUSTAQIL",
+                    callback_data="role_side_independent"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔙 Orqaga",
+                    callback_data="back_main"
+                )
+            ],
+        ]
+    )
+
+
+def role_list_menu(side):
+    buttons = []
+
+    for key, role in side:
+        buttons.append([
+            InlineKeyboardButton(
+                text=role["name"],
+                callback_data=f"role_{key}"
+            )
+        ])
+
+    buttons.append([
+        InlineKeyboardButton(
+            text="🔙 Rollarga",
+            callback_data="roles"
+        )
+    ])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def role_detail_menu():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🔙 Rollarga",
+                    callback_data="roles"
+                )
+            ]
+        ]
+                )
