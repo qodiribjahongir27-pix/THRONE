@@ -1,48 +1,48 @@
 ROLES = {
-    # 👑 TAHT TOMONI
 
+    # 👑 TAHT TOMONI
     "king": {
         "name": "👑 Shoh",
         "side": "Taxt",
         "description": "Qirollikning oliy hukmdori.",
-        "ability": "Qirollik qarorlariga va saroy boshqaruviga ta'sir qiladi.",
-        "limitation": "Dushmanlar uchun asosiy nishon.",
+        "ability": "Qirollik qarorlariga ta'sir qiladi va saroy boshqaruvining markazida turadi.",
+        "limitation": "Shohning yo‘q qilinishi Taxt tomoniga katta xavf tug‘diradi.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
     "queen": {
         "name": "👸 Malika",
         "side": "Taxt",
-        "description": "Saroydagi eng nufuzli shaxslardan biri.",
-        "ability": "Ittifoqlar va saroy qarorlariga ta'sir qiladi.",
-        "limitation": "O‘zining haqiqiy tomonini ehtiyotkorlik bilan yashirishi kerak.",
+        "description": "Saroydagi nufuzli shaxs.",
+        "ability": "Ittifoqlar va saroy qarorlariga siyosiy ta'sir ko‘rsatadi.",
+        "limitation": "Mustaqil hujum qila olmaydi.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
-    "vizier": {
+    "minister": {
         "name": "🏛️ Vazir",
         "side": "Taxt",
         "description": "Shohning asosiy maslahatchisi.",
-        "ability": "Mustaqil siyosiy qaror qabul qilish imkoniyatiga ega.",
-        "limitation": "Shohga qarshi chiqsa, saroydagi mavqei xavf ostida qoladi.",
+        "ability": "Qirollik siyosatiga ta'sir qiladi va ayrim qarorlarda Shohga qarshi pozitsiya olishi mumkin.",
+        "limitation": "Hokimiyatni to‘liq o‘z qo‘liga ola olmaydi.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
     "prince": {
         "name": "🤴 Shahzoda",
         "side": "Taxt",
-        "description": "Shohning merosxo‘ri.",
-        "ability": "Maxsus himoya va saroy imtiyoziga ega.",
-        "limitation": "Dushmanlar uni yo‘q qilishga urinadi.",
+        "description": "Qirollik vorisi.",
+        "ability": "Maxsus himoya va vorislik imkoniyatiga ega.",
+        "limitation": "Himoya kuchi cheklangan.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
     "commander": {
         "name": "⚔️ Bosh qo‘mondon",
         "side": "Taxt",
-        "description": "Qirollik qo‘shinlarining boshlig‘i.",
-        "ability": "Harbiy kuchlarga strategik bonus beradi.",
-        "limitation": "Harbiy qarorlar cheklangan.",
+        "description": "Qirollik armiyasining bosh strategisti.",
+        "ability": "Harbiy kuch va himoya strategiyasiga bonus beradi.",
+        "limitation": "Siyosiy qarorlarga bevosita hukmronlik qila olmaydi.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
@@ -50,26 +50,26 @@ ROLES = {
         "name": "🛡️ Qirol qo‘riqchisi",
         "side": "Taxt",
         "description": "Qirollikning maxsus himoyachisi.",
-        "ability": "Tanlangan shaxsni himoya qiladi.",
-        "limitation": "Bir vaqtning o‘zida cheklangan himoya.",
+        "ability": "Tanlangan o‘yinchini tungi hujumdan himoya qiladi.",
+        "limitation": "Himoya imkoniyati har tun cheklangan.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
-    "qadi": {
+    "judge": {
         "name": "⚖️ Qozi",
         "side": "Taxt",
-        "description": "Qirollikdagi hukm va adolat vakili.",
-        "ability": "Ovoz berish jarayoniga maxsus ta’sir ko‘rsatadi.",
-        "limitation": "Qobiliyatlar soni cheklangan.",
+        "description": "Qirollik hukmlarini nazorat qiluvchi shaxs.",
+        "ability": "Ovoz berish va sud qarorlariga maxsus ta'sir ko‘rsatadi.",
+        "limitation": "Qobiliyatidan foydalanish soni cheklangan.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
     "treasurer": {
         "name": "💰 Xazinachi",
         "side": "Taxt",
-        "description": "Qirollik xazinasini nazorat qiladi.",
-        "ability": "Iqtisodiy bonuslarni boshqaradi.",
-        "limitation": "To‘g‘ridan-to‘g‘ri hujum qobiliyati yo‘q.",
+        "description": "Qirollik xazinasini boshqaradi.",
+        "ability": "Iqtisodiy bonuslar va xazina boshqaruvini kuchaytiradi.",
+        "limitation": "Jangovar qobiliyati yo‘q.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
@@ -77,52 +77,52 @@ ROLES = {
         "name": "🩺 Tabib",
         "side": "Taxt",
         "description": "Qirollik tabibi.",
-        "ability": "Tanlangan o‘yinchini hujumdan himoya qiladi.",
-        "limitation": "Bir nishonni ketma-ket himoya qilish cheklanishi mumkin.",
+        "ability": "Tanlangan o‘yinchini hujumdan saqlab qolishga urinadi.",
+        "limitation": "Bir xil nishonni ketma-ket himoya qilish cheklanishi mumkin.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
     "spy": {
         "name": "🕵️ Josus",
         "side": "Taxt",
-        "description": "Yashirin ma'lumot to‘plovchi.",
-        "ability": "Tanlangan o‘yinchi haqida maxsus ma'lumot oladi.",
-        "limitation": "Ma'lumot to‘liq bo‘lmasligi mumkin.",
+        "description": "Yashirin ma'lumotlarni yig‘uvchi saroy agenti.",
+        "ability": "Tanlangan o‘yinchi haqida yashirin ma'lumot oladi.",
+        "limitation": "Olingan ma'lumot har doim to‘liq bo‘lmasligi mumkin.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
     "astrologer": {
         "name": "🔮 Munajjim",
         "side": "Taxt",
-        "description": "Sirli belgilar orqali tomonlarni aniqlaydi.",
+        "description": "Yashirin tomonlarni aniqlashga qodir.",
         "ability": "Tanlangan o‘yinchining tomonini tekshiradi.",
-        "limitation": "Tekshiruvlar soni cheklangan.",
+        "limitation": "Soya kabi maxsus himoyalangan rollarda natija cheklanishi mumkin.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
     "palace_guard": {
         "name": "🗡️ Saroy qo‘riqchisi",
         "side": "Taxt",
-        "description": "Saroyning maxsus jangchisi.",
-        "ability": "Hujumni qaytarish imkoniyatiga ega.",
-        "limitation": "Maxsus qobiliyati cheklangan.",
+        "description": "Saroyni himoya qiluvchi jangchi.",
+        "ability": "Hujumga uchraganda cheklangan qarshi hujum qilishi mumkin.",
+        "limitation": "Qarshi hujum imkoniyati cheklangan.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
-    "birdkeeper": {
+    "falconer": {
         "name": "🦅 Qushboqar",
         "side": "Taxt",
-        "description": "Uzoqdan kuzatuv olib boruvchi saroy vakili.",
-        "ability": "Harakatlarni kuzatish imkoniyatiga ega.",
-        "limitation": "Kuzatuv natijasi cheklangan.",
+        "description": "Qirollik hududidagi harakatlarni kuzatuvchi.",
+        "ability": "Tanlangan hudud yoki o‘yinchining tungi harakatini kuzatadi.",
+        "limitation": "Aniq rolni doim ham aniqlay olmaydi.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
     "scribe": {
         "name": "📜 Kotib",
         "side": "Taxt",
-        "description": "Saroy voqealarini qayd etadi.",
-        "ability": "Muhim o‘yin voqealari haqida ma'lumot oladi.",
+        "description": "Qirollik voqealarini qayd etuvchi saroy xodimi.",
+        "ability": "Muhim o‘yin voqealarini tahlil qilish uchun qo‘shimcha ma'lumot oladi.",
         "limitation": "To‘g‘ridan-to‘g‘ri jang qobiliyati yo‘q.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
@@ -131,194 +131,211 @@ ROLES = {
         "name": "🏹 Ovchi",
         "side": "Taxt",
         "description": "Qirollikning mohir ovchisi.",
-        "ability": "Maxsus holatda qarshi hujum qiladi.",
-        "limitation": "Qobiliyatdan foydalanish soni cheklangan.",
+        "ability": "Yo‘q qilinganida yoki maxsus sharoitda bir marta qarshi hujum qilishi mumkin.",
+        "limitation": "Maxsus hujum bir martalik.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
     "guide": {
         "name": "🧭 Yo‘lchi",
         "side": "Taxt",
-        "description": "Yashirin harakatlarni kuzatuvchi.",
-        "ability": "Tanlangan hudud yoki harakat haqida ma'lumot oladi.",
-        "limitation": "Ma'lumot chegaralangan.",
+        "description": "Yashirin yo‘llarni va harakatlarni kuzatuvchi.",
+        "ability": "Tanlangan o‘yinchining harakat yo‘nalishi haqida ma'lumot oladi.",
+        "limitation": "Natija umumiy bo‘lishi mumkin.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
     "herald": {
         "name": "🔔 Jar soluvchi",
         "side": "Taxt",
-        "description": "Qirollik qarorlarini xalqqa yetkazadi.",
-        "ability": "Kunlik ovoz berish jarayoniga maxsus ta'sir ko‘rsatadi.",
-        "limitation": "Qobiliyatlar soni cheklangan.",
+        "description": "Qirollik xabarlarini xalqqa yetkazadi.",
+        "ability": "Kunlik ovoz berish yoki sud jarayoniga cheklangan ta'sir qiladi.",
+        "limitation": "Qobiliyati kuniga bir marta ishlatiladi.",
         "win": "Taxt tomoni g‘alaba qozonsa."
     },
 
     # 🩸 QORA TOMON
-
-    "dark_ruler": {
+    "dark_lord": {
         "name": "🩸 Qora hukmdor",
         "side": "Qora",
-        "description": "Dushman tomonining asosiy rahbari.",
-        "ability": "Qora tomon harakatlarini boshqaradi.",
-        "limitation": "Yo‘q qilinsa, tomon kuchsizlanadi.",
-        "win": "Taxt tomonini mag‘lub etish."
+        "description": "Qirollikka qarshi yashirin kuchlarning rahbari.",
+        "ability": "Qora tomon harakatlarini muvofiqlashtiradi.",
+        "limitation": "Taxt tomonining maxsus tekshiruvlaridan butunlay himoyalanmagan.",
+        "win": "Qora tomon ustun kelganda."
     },
 
     "assassin": {
         "name": "🗡️ Qotil",
         "side": "Qora",
-        "description": "Yashirin suiqasd ustasi.",
-        "ability": "Tanlangan nishonga hujum qiladi.",
-        "limitation": "Harakatlari yashirin bo‘lishi kerak.",
-        "win": "Qora tomon g‘alaba qozonsa."
+        "description": "Yashirin hujum ustasi.",
+        "ability": "Tunda tanlangan nishonga hujum qiladi.",
+        "limitation": "Himoyalangan nishonni yo‘q qila olmasligi mumkin.",
+        "win": "Qora tomon ustun kelganda."
     },
 
     "poisoner": {
         "name": "🕷️ Zaharsoch",
         "side": "Qora",
-        "description": "Zahar ishlatuvchi maxfiy jangchi.",
-        "ability": "Nishonni zaharlaydi va zaiflashtiradi.",
-        "limitation": "Zahar effekti cheklangan.",
-        "win": "Qora tomon g‘alaba qozonsa."
+        "description": "Yashirin zahar bilan ishlovchi dushman.",
+        "ability": "Nishonni zaharlab, keyingi bosqichlarda zaiflashtiradi.",
+        "limitation": "Ta'siri darhol yakunlanmasligi mumkin.",
+        "win": "Qora tomon ustun kelganda."
     },
 
     "shadow": {
         "name": "🕶️ Soya",
         "side": "Qora",
-        "description": "Tekshiruvlardan yashirinuvchi maxfiy agent.",
-        "ability": "Ba'zi tekshiruvlarda aniqlanmasligi mumkin.",
-        "limitation": "Himoyasi cheklangan.",
-        "win": "Qora tomon g‘alaba qozonsa."
+        "description": "O‘z izini yashirishga ixtisoslashgan agent.",
+        "ability": "Tekshiruvlardan yashirinib qolish imkoniyatiga ega.",
+        "limitation": "Barcha tekshiruvlardan doimiy himoya yo‘q.",
+        "win": "Qora tomon ustun kelganda."
     },
 
     "burner": {
         "name": "🔥 Yondiruvchi",
         "side": "Qora",
-        "description": "Uzoq muddatli xavf yaratadi.",
-        "ability": "Tanlangan nishonga maxsus effekt beradi.",
-        "limitation": "Qobiliyatni qayta ishlatish uchun vaqt kerak.",
-        "win": "Qora tomon g‘alaba qozonsa."
+        "description": "Uzoq muddatli xavf yaratadigan dushman.",
+        "ability": "Nishonga vaqt o‘tishi bilan kuchayadigan maxsus ta'sir qo‘yadi.",
+        "limitation": "Ta'siri bosqichma-bosqich amalga oshadi.",
+        "win": "Qora tomon ustun kelganda."
     },
 
     "trapper": {
         "name": "🪤 Tuzoqchi",
         "side": "Qora",
-        "description": "Yashirin tuzoqlar ustasi.",
-        "ability": "Tanlangan harakatga tuzoq qo‘yadi.",
-        "limitation": "Tuzoqlar soni cheklangan.",
-        "win": "Qora tomon g‘alaba qozonsa."
+        "description": "Yashirin tuzoqlar o‘rnatuvchi.",
+        "ability": "Tanlangan nishonga tuzoq o‘rnatib, uning harakatini jazolaydi.",
+        "limitation": "Tuzoq soni cheklangan.",
+        "win": "Qora tomon ustun kelganda."
     },
 
     "master_poisoner": {
         "name": "🧪 Zahar ustasi",
         "side": "Qora",
-        "description": "Murakkab zaharlar ustasi.",
-        "ability": "Kuchli zahar effektlaridan foydalanadi.",
-        "limitation": "Qobiliyatlar soni cheklangan.",
-        "win": "Qora tomon g‘alaba qozonsa."
+        "description": "Zaharlar bo‘yicha eng xavfli mutaxassis.",
+        "ability": "Oddiy zaharga qaraganda kuchliroq zaharli ta'sir qo‘llaydi.",
+        "limitation": "Qobiliyatdan foydalanish soni cheklangan.",
+        "win": "Qora tomon ustun kelganda."
     },
 
-    "black_hunter": {
+    "dark_hunter": {
         "name": "🐺 Qora ovchi",
         "side": "Qora",
         "description": "Zaiflashgan nishonlarni ovlaydi.",
-        "ability": "Zaif nishonlarga kuchli hujum qiladi.",
-        "limitation": "Faqat mos nishonlarda kuchli.",
-        "win": "Qora tomon g‘alaba qozonsa."
+        "ability": "Zaif yoki jarohatlangan o‘yinchilarga qarshi kuchli hujum qiladi.",
+        "limitation": "To‘liq himoyalangan nishonga qarshi samarasi pasayadi.",
+        "win": "Qora tomon ustun kelganda."
     },
 
     # ⚔️ ISYON TOMONI
-
     "rebel_leader": {
         "name": "⚔️ Isyonchi boshlig‘i",
         "side": "Isyon",
-        "description": "Isyonchilar rahbari.",
+        "description": "Qirollik hokimiyatini ag‘darishni istagan guruh rahbari.",
         "ability": "Isyonchilar harakatlarini muvofiqlashtiradi.",
-        "limitation": "Taxt tomoni uni aniqlasa xavf ostida qoladi.",
-        "win": "Isyonchilar g‘alaba qozonsa."
+        "limitation": "Qora tomon bilan avtomatik ittifoqchi emas.",
+        "win": "Isyon tomoni o‘z maqsadiga erishganda."
     },
 
     "executioner": {
         "name": "🪓 Jallod",
         "side": "Isyon",
-        "description": "Kuchli jangchi.",
-        "ability": "Zaiflashgan nishonga kuchli hujum qiladi.",
-        "limitation": "Maxsus hujumi cheklangan.",
-        "win": "Isyonchilar g‘alaba qozonsa."
+        "description": "Kuchli hujumchi.",
+        "ability": "Zaiflashgan nishonga kuchli zarba beradi.",
+        "limitation": "Kuchli himoyaga qarshi samarasi kamayadi.",
+        "win": "Isyon tomoni g‘alaba qozonganda."
     },
 
     "rebel": {
         "name": "🏴 Isyonchi",
         "side": "Isyon",
-        "description": "Qirollik hokimiyatiga qarshi kurashuvchi.",
-        "ability": "Isyonchilar bilan yashirin hamkorlik qiladi.",
-        "limitation": "Ochiqlansa xavf ostida qoladi.",
-        "win": "Isyonchilar g‘alaba qozonsa."
+        "description": "Qirollikka qarshi kurashuvchi isyonchi.",
+        "ability": "Isyon guruhining umumiy harakatlarida qatnashadi.",
+        "limitation": "Yakka holda kuchi cheklangan.",
+        "win": "Isyon tomoni g‘alaba qozonganda."
     },
 
     "schemer": {
         "name": "🐍 Fitnachi",
         "side": "Isyon",
-        "description": "Saroy ichida nizolar yaratadi.",
-        "ability": "Ovoz berish va ishonch jarayoniga ta'sir qiladi.",
-        "limitation": "To‘g‘ridan-to‘g‘ri hujum qobiliyati yo‘q.",
-        "win": "Isyonchilar g‘alaba qozonsa."
+        "description": "O‘yinchilar orasida ishonchsizlik yaratadi.",
+        "ability": "Ovoz berish yoki ma'lumot almashish jarayoniga yashirin ta'sir ko‘rsatadi.",
+        "limitation": "Qobiliyati cheklangan.",
+        "win": "Isyon tomoni g‘alaba qozonganda."
     },
 
     "false_advisor": {
         "name": "🕯️ Soxta maslahatchi",
         "side": "Isyon",
-        "description": "Saroyga kirgan yashirin xoin.",
-        "ability": "Noto‘g‘ri ma'lumot tarqatadi.",
-        "limitation": "Haqiqiy roli aniqlansa kuchsizlanadi.",
-        "win": "Isyonchilar g‘alaba qozonsa."
+        "description": "O‘zini qirollik maslahatchisidek ko‘rsatadi.",
+        "ability": "Yolg‘on yoki chalg‘ituvchi ma'lumot tarqatishi mumkin.",
+        "limitation": "Haqiqiy ma'lumotni to‘liq nazorat qila olmaydi.",
+        "win": "Isyon tomoni g‘alaba qozonganda."
     },
 
     "avenger": {
         "name": "🦂 Qasoskor",
         "side": "Isyon",
-        "description": "Qasos olishga ixtisoslashgan.",
-        "ability": "Yo‘q qilinganda qarshi ta'sir qoldiradi.",
-        "limitation": "Qobiliyati faqat maxsus sharoitda ishlaydi.",
-        "win": "Isyonchilar g‘alaba qozonsa."
+        "description": "Yo‘q qilinganidan keyin ham ta'sir qoldiruvchi jangchi.",
+        "ability": "Eliminatsiya qilinganida tanlangan nishonga qasos ta'siri qoldiradi.",
+        "limitation": "Qasos ta'siri bir martalik.",
+        "win": "Isyon tomoni g‘alaba qozonganda."
     },
 
     # ☠️ MUSTAQIL
-
     "madman": {
         "name": "🃏 Telba",
         "side": "Mustaqil",
-        "description": "O‘zining g‘alaba shartiga ega.",
-        "ability": "O‘zini shubhali ko‘rsatib, ovoz bilan chiqarilishga harakat qiladi.",
-        "limitation": "Boshqa tomonlarga to‘liq qo‘shilmaydi.",
-        "win": "O‘zining maxsus shartini bajarish."
+        "description": "O‘ziga xos g‘alaba shartiga ega bo‘lgan mustaqil o‘yinchi.",
+        "ability": "O‘zini shubhali ko‘rsatib, ovoz berish orqali yo‘q qilinishga harakat qiladi.",
+        "limitation": "Oddiy tomonlarning g‘alabasi uning shaxsiy maqsadini bajarmaydi.",
+        "win": "O‘zining maxsus g‘alaba shartini bajarsa."
     },
 
-    "ghost": {
+    "revenant": {
         "name": "💀 Qasoskor ruh",
         "side": "Mustaqil",
-        "description": "Yo‘q qilingandan keyin ham ta'sirini davom ettiradi.",
-        "ability": "Cheklangan ruhiy ta'sir qobiliyatiga ega.",
-        "limitation": "Tirik o‘yinchilar kabi barcha harakatlarni bajara olmaydi.",
-        "win": "O‘zining maxsus shartini bajarish."
+        "description": "Yo‘q qilinganidan keyin ham cheklangan ta'sirga ega ruh.",
+        "ability": "O‘limdan keyin cheklangan miqdorda o‘yin voqealariga ta'sir qiladi.",
+        "limitation": "Tirik o‘yinchi kabi to‘liq harakat qila olmaydi.",
+        "win": "O‘zining maxsus maqsadini bajarsa."
     },
 
     "lone_hunter": {
         "name": "🐺 Yolg‘iz ovchi",
         "side": "Mustaqil",
-        "description": "Hech bir tomonga to‘liq bo‘ysunmaydi.",
-        "ability": "O‘z nishonlarini tanlaydi.",
-        "limitation": "Yolg‘iz harakat qiladi.",
-        "win": "O‘zining maxsus g‘alaba shartini bajarish."
+        "description": "Hech bir asosiy tomonga to‘liq bo‘ysunmaydigan ovchi.",
+        "ability": "Mustaqil ravishda nishonlarni ovlaydi.",
+        "limitation": "Hech bir tomonning umumiy himoyasidan foydalanmaydi.",
+        "win": "O‘zining maxsus g‘alaba shartini bajarsa."
     },
 
     "shadow_king": {
         "name": "👤 Soyadagi qirol",
         "side": "Mustaqil",
-        "description": "Haqiqiy maqsadini yashiruvchi sirli shaxs.",
-        "ability": "Yashirin harakatlar orqali o‘z maqsadiga yaqinlashadi.",
-        "limitation": "Maxsus g‘alaba shartini bajarishi kerak.",
-        "win": "O‘zining maxsus g‘alaba shartini bajarish."
+        "description": "Yashirin maqsad bilan harakat qiluvchi sirli hukmdor.",
+        "ability": "O‘zining yashirin topshirig‘iga qarab maxsus imkoniyatlarga ega bo‘ladi.",
+        "limitation": "Maxsus maqsadi bajarilmasa g‘alaba qozona olmaydi.",
+        "win": "Yashirin g‘alaba shartini bajarsa."
     }
 }
+
+
+def get_role(role_key: str):
+    return ROLES.get(role_key)
+
+
+def get_roles_by_side(side: str):
+    return {
+        key: role
+        for key, role in ROLES.items()
+        if role["side"] == side
+    }
+
+
+def get_all_roles():
+    return ROLES
+
+
+def role_count():
+    return len(ROLES)
