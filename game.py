@@ -16,18 +16,11 @@ from database import (
     get_game_players,
     set_game_status,
     assign_game_role,
-    eliminate_game_player,
-    add_game_action,
-    get_game_actions,
-    add_game_vote,
-    get_game_votes,
-    clear_game_votes,
-    save_game_result,
     get_user,
     create_user,
 )
 
-from game.role_engine import assign_roles
+from role_engine import assign_roles
 
 
 router = Router()
@@ -54,7 +47,7 @@ async def ensure_user(user):
 
 
 # =========================================================
-# LOBBY
+# LOBBY KEYBOARD
 # =========================================================
 
 def lobby_keyboard(can_start=False):
@@ -89,7 +82,9 @@ def lobby_keyboard(can_start=False):
             )
         ])
 
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+    return InlineKeyboardMarkup(
+        inline_keyboard=buttons
+    )
 
 
 # =========================================================
@@ -133,9 +128,7 @@ async def new_game(message: Message):
         f"👥 O‘yinchilar: <b>1 / {MAX_PLAYERS}</b>\n"
         f"⚔️ Minimal: <b>{MIN_PLAYERS}</b>\n\n"
         "O‘yinga qo‘shiling va taxt uchun kurashing.",
-        reply_markup=lobby_keyboard(
-            can_start=True
-        ),
+        reply_markup=lobby_keyboard(can_start=True),
     )
 
 
@@ -169,8 +162,8 @@ async def join_game(message: Message):
     players = await get_game_players(game["id"])
 
     if any(
-        p["user_id"] == message.from_user.id
-        for p in players
+        player["user_id"] == message.from_user.id
+        for player in players
     ):
         await message.answer(
             "👑 Siz allaqachon o‘yindasiz."
@@ -205,6 +198,10 @@ async def join_game(message: Message):
 @router.callback_query(F.data == "game_join")
 async def join_button(callback: CallbackQuery):
 
+    if not callback.message:
+        await callback.answer()
+        return
+
     game = await get_active_game(
         callback.message.chat.id
     )
@@ -228,8 +225,8 @@ async def join_button(callback: CallbackQuery):
     players = await get_game_players(game["id"])
 
     if any(
-        p["user_id"] == callback.from_user.id
-        for p in players
+        player["user_id"] == callback.from_user.id
+        for player in players
     ):
         await callback.answer(
             "Siz allaqachon o‘yindasiz.",
@@ -266,6 +263,10 @@ async def join_button(callback: CallbackQuery):
 @router.callback_query(F.data == "game_leave")
 async def leave_button(callback: CallbackQuery):
 
+    if not callback.message:
+        await callback.answer()
+        return
+
     game = await get_active_game(
         callback.message.chat.id
     )
@@ -294,8 +295,8 @@ async def leave_button(callback: CallbackQuery):
     players = await get_game_players(game["id"])
 
     if not any(
-        p["user_id"] == callback.from_user.id
-        for p in players
+        player["user_id"] == callback.from_user.id
+        for player in players
     ):
         await callback.answer(
             "Siz o‘yinda emassiz.",
@@ -320,6 +321,10 @@ async def leave_button(callback: CallbackQuery):
 @router.callback_query(F.data == "game_players")
 async def players_button(callback: CallbackQuery):
 
+    if not callback.message:
+        await callback.answer()
+        return
+
     game = await get_active_game(
         callback.message.chat.id
     )
@@ -333,20 +338,26 @@ async def players_button(callback: CallbackQuery):
 
     players = await get_game_players(game["id"])
 
-    lines = []
-
-    for index, player in enumerate(players, 1):
-        name = player["full_name"] or "O‘yinchi"
-
-        lines.append(
-            f"{index}. 👤 {name}"
+    if not players:
+        text = (
+            "👥 <b>THRONE O‘YINCHILARI</b>\n\n"
+            "Hozircha o‘yinchi yo‘q."
         )
+    else:
+        lines = []
 
-    text = (
-        "👥 <b>THRONE O‘YINCHILARI</b>\n\n"
-        + "\n".join(lines)
-        + f"\n\nJami: <b>{len(players)}</b>"
-    )
+        for index, player in enumerate(players, 1):
+            name = player["full_name"] or "O‘yinchi"
+
+            lines.append(
+                f"{index}. 👤 {name}"
+            )
+
+        text = (
+            "👥 <b>THRONE O‘YINCHILARI</b>\n\n"
+            + "\n".join(lines)
+            + f"\n\nJami: <b>{len(players)}</b>"
+        )
 
     await callback.message.answer(text)
     await callback.answer()
@@ -359,11 +370,16 @@ async def players_button(callback: CallbackQuery):
 @router.callback_query(F.data == "game_rules")
 async def rules_button(callback: CallbackQuery):
 
+    if not callback.message:
+        await callback.answer()
+        return
+
     await callback.message.answer(
         "📖 <b>THRONE QOIDALARI</b>\n\n"
         "🌙 Tunda maxfiy harakatlar bajariladi.\n"
         "☀️ Kunduzi muhokama bo‘ladi.\n"
         "⚖️ Ovoz berish orqali o‘yinchi chiqariladi.\n"
+        "💬 Chiqarilgan o‘yinchiga so‘nggi so‘z beriladi.\n"
         "👑 Oxirida o‘z tomoningizning g‘alabasiga "
         "erishishingiz kerak.\n\n"
         f"👥 Minimal: <b>{MIN_PLAYERS}</b>\n"
@@ -379,6 +395,10 @@ async def rules_button(callback: CallbackQuery):
 
 @router.callback_query(F.data == "game_start")
 async def start_game(callback: CallbackQuery):
+
+    if not callback.message:
+        await callback.answer()
+        return
 
     game = await get_active_game(
         callback.message.chat.id
@@ -398,7 +418,8 @@ async def start_game(callback: CallbackQuery):
         )
         return
 
-    # Faqat o‘yin yaratuvchisi yoki Creator
+    # Hozircha faqat o‘yin yaratuvchisi
+    # yoki THRONE Creator boshlay oladi.
     if (
         callback.from_user.id != game["creator_id"]
         and callback.from_user.id != CREATOR_ID
@@ -479,11 +500,14 @@ async def start_game(callback: CallbackQuery):
 
 
 # =========================================================
-# STOP GAME
+# /stop
 # =========================================================
 
 @router.message(Command("stop"))
 async def stop_game(message: Message):
+
+    if message.chat.type not in ("group", "supergroup"):
+        return
 
     game = await get_active_game(
         message.chat.id
