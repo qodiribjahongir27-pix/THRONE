@@ -656,3 +656,559 @@ async def get_army(user_id: int):
 
 
 # =========
+# =========================
+# GAME
+# =========================
+
+async def get_active_game(chat_id: int):
+    return await fetchone("""
+        SELECT *
+        FROM games
+        WHERE chat_id = ?
+          AND status IN ('lobby', 'running')
+        ORDER BY id DESC
+        LIMIT 1
+    """, (chat_id,))
+
+
+async def create_game(
+    chat_id: int,
+    creator_id: int,
+    min_players: int = 7,
+    max_players: int = 35
+):
+    return await execute("""
+        INSERT INTO games
+        (chat_id, creator_id, status, phase, min_players, max_players)
+        VALUES (?, ?, 'lobby', 'lobby', ?, ?)
+    """, (chat_id, creator_id, min_players, max_players))
+
+
+async def add_game_player(
+    game_id: int,
+    user_id: int
+):
+    await execute("""
+        INSERT OR IGNORE INTO game_players
+        (game_id, user_id)
+        VALUES (?, ?)
+    """, (game_id, user_id))
+
+
+async def remove_game_player(
+    game_id: int,
+    user_id: int
+):
+    await execute("""
+        DELETE FROM game_players
+        WHERE game_id = ?
+          AND user_id = ?
+    """, (game_id, user_id))
+
+
+async def get_game_players(game_id: int):
+    return await fetchall("""
+        SELECT
+            gp.*,
+            u.username,
+            u.full_name,
+            u.nickname
+        FROM game_players gp
+        JOIN users u
+          ON u.user_id = gp.user_id
+        WHERE gp.game_id = ?
+        ORDER BY gp.id ASC
+    """, (game_id,))
+
+
+async def set_game_status(
+    game_id: int,
+    status: str,
+    phase: Optional[str] = None
+):
+    if phase is None:
+        await execute("""
+            UPDATE games
+            SET status = ?
+            WHERE id = ?
+        """, (status, game_id))
+    else:
+        await execute("""
+            UPDATE games
+            SET status = ?,
+                phase = ?
+            WHERE id = ?
+        """, (status, phase, game_id))
+
+
+async def assign_game_role(
+    game_id: int,
+    user_id: int,
+    role_key: str,
+    side: str
+):
+    await execute("""
+        UPDATE game_players
+        SET role_key = ?,
+            side = ?
+        WHERE game_id = ?
+          AND user_id = ?
+    """, (role_key, side, game_id, user_id))
+
+
+async def eliminate_game_player(
+    game_id: int,
+    user_id: int
+):
+    await execute("""
+        UPDATE game_players
+        SET alive = 0,
+            eliminated = 1
+        WHERE game_id = ?
+          AND user_id = ?
+    """, (game_id, user_id))
+
+
+async def add_game_action(
+    game_id: int,
+    actor_id: int,
+    target_id: Optional[int],
+    action_type: str,
+    value: str = "",
+    round_number: int = 0
+):
+    return await execute("""
+        INSERT INTO game_actions
+        (game_id, actor_id, target_id, action_type, value, round_number)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        game_id,
+        actor_id,
+        target_id,
+        action_type,
+        value,
+        round_number
+    ))
+
+
+async def get_game_actions(
+    game_id: int,
+    round_number: Optional[int] = None
+):
+    if round_number is None:
+        return await fetchall("""
+            SELECT *
+            FROM game_actions
+            WHERE game_id = ?
+            ORDER BY id ASC
+        """, (game_id,))
+
+    return await fetchall("""
+        SELECT *
+        FROM game_actions
+        WHERE game_id = ?
+          AND round_number = ?
+        ORDER BY id ASC
+    """, (game_id, round_number))
+
+
+async def add_game_vote(
+    game_id: int,
+    voter_id: int,
+    target_id: int,
+    round_number: int = 0
+):
+    return await execute("""
+        INSERT OR REPLACE INTO game_votes
+        (game_id, voter_id, target_id, round_number)
+        VALUES (?, ?, ?, ?)
+    """, (
+        game_id,
+        voter_id,
+        target_id,
+        round_number
+    ))
+
+
+async def get_game_votes(
+    game_id: int,
+    round_number: Optional[int] = None
+):
+    if round_number is None:
+        return await fetchall("""
+            SELECT *
+            FROM game_votes
+            WHERE game_id = ?
+            ORDER BY id ASC
+        """, (game_id,))
+
+    return await fetchall("""
+        SELECT *
+        FROM game_votes
+        WHERE game_id = ?
+          AND round_number = ?
+        ORDER BY id ASC
+    """, (game_id, round_number))
+
+
+async def clear_game_votes(
+    game_id: int,
+    round_number: Optional[int] = None
+):
+    if round_number is None:
+        await execute("""
+            DELETE FROM game_votes
+            WHERE game_id = ?
+        """, (game_id,))
+    else:
+        await execute("""
+            DELETE FROM game_votes
+            WHERE game_id = ?
+              AND round_number = ?
+        """, (game_id, round_number))
+
+
+async def save_game_result(
+    game_id: int,
+    winning_side: str,
+    winner_user_id: Optional[int] = None,
+    result_text: str = ""
+):
+    await execute("""
+        INSERT OR REPLACE INTO game_results
+        (game_id, winning_side, winner_user_id, result_text)
+        VALUES (?, ?, ?, ?)
+    """, (
+        game_id,
+        winning_side,
+        winner_user_id,
+        result_text
+    ))
+
+    await execute("""
+        UPDATE games
+        SET status = 'finished',
+            phase = 'finished',
+            ended_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (game_id,))
+
+
+# =========================
+# SECURITY
+# =========================
+
+async def security_log(
+    user_id: Optional[int],
+    action: str,
+    details: str = ""
+):
+    return await execute("""
+        INSERT INTO security_logs
+        (user_id, action, details)
+        VALUES (?, ?, ?)
+    """, (user_id, action, details))
+
+
+# =========================
+# FAMILY
+# =========================
+
+async def get_family(user_id: int):
+    return await fetchone("""
+        SELECT *
+        FROM families
+        WHERE user1_id = ?
+           OR user2_id = ?
+        LIMIT 1
+    """, (user_id, user_id))
+
+
+async def create_family(
+    user1_id: int,
+    user2_id: int
+):
+    return await execute("""
+        INSERT INTO families
+        (user1_id, user2_id)
+        VALUES (?, ?)
+    """, (user1_id, user2_id))
+
+
+async def get_pending_family_proposal(
+    sender_id: int,
+    receiver_id: int
+):
+    return await fetchone("""
+        SELECT *
+        FROM family_proposals
+        WHERE sender_id = ?
+          AND receiver_id = ?
+          AND status = 'pending'
+        ORDER BY id DESC
+        LIMIT 1
+    """, (sender_id, receiver_id))
+
+
+async def create_family_proposal(
+    sender_id: int,
+    receiver_id: int
+):
+    return await execute("""
+        INSERT INTO family_proposals
+        (sender_id, receiver_id, status)
+        VALUES (?, ?, 'pending')
+    """, (sender_id, receiver_id))
+
+
+async def update_family_proposal(
+    proposal_id: int,
+    status: str
+):
+    await execute("""
+        UPDATE family_proposals
+        SET status = ?
+        WHERE id = ?
+    """, (status, proposal_id))
+
+
+# =========================
+# INVENTORY
+# =========================
+
+async def get_inventory(user_id: int):
+    return await fetchall("""
+        SELECT *
+        FROM inventory
+        WHERE user_id = ?
+        ORDER BY id ASC
+    """, (user_id,))
+
+
+async def add_inventory_item(
+    user_id: int,
+    item_key: str,
+    quantity: int = 1
+):
+    if quantity <= 0:
+        return False
+
+    await execute("""
+        INSERT INTO inventory
+        (user_id, item_key, quantity)
+        VALUES (?, ?, ?)
+        ON CONFLICT(user_id, item_key)
+        DO UPDATE SET quantity = quantity + excluded.quantity
+    """, (user_id, item_key, quantity))
+
+    return True
+
+
+async def remove_inventory_item(
+    user_id: int,
+    item_key: str,
+    quantity: int = 1
+):
+    if quantity <= 0:
+        return False
+
+    db = await get_db()
+
+    try:
+        cursor = await db.execute("""
+            UPDATE inventory
+            SET quantity = quantity - ?
+            WHERE user_id = ?
+              AND item_key = ?
+              AND quantity >= ?
+        """, (
+            quantity,
+            user_id,
+            item_key,
+            quantity
+        ))
+
+        await db.commit()
+
+        if cursor.rowcount != 1:
+            return False
+
+        await db.execute("""
+            DELETE FROM inventory
+            WHERE user_id = ?
+              AND item_key = ?
+              AND quantity <= 0
+        """, (user_id, item_key))
+
+        await db.commit()
+
+        return True
+
+    finally:
+        await db.close()
+
+
+# =========================
+# RANKING
+# =========================
+
+async def get_top_players(limit: int = 20):
+    return await fetchall("""
+        SELECT
+            u.user_id,
+            u.username,
+            u.full_name,
+            u.nickname,
+            u.level,
+            ps.games_won,
+            ps.ranking_points
+        FROM users u
+        JOIN player_stats ps
+          ON ps.user_id = u.user_id
+        ORDER BY ps.ranking_points DESC,
+                 ps.games_won DESC,
+                 u.level DESC
+        LIMIT ?
+    """, (limit,))
+
+
+async def add_ranking_points(
+    user_id: int,
+    points: int,
+    reason: str = ""
+):
+    if points == 0:
+        return
+
+    await execute("""
+        UPDATE player_stats
+        SET ranking_points = ranking_points + ?
+        WHERE user_id = ?
+    """, (points, user_id))
+
+    await execute("""
+        INSERT INTO ranking_history
+        (user_id, points, reason)
+        VALUES (?, ?, ?)
+    """, (user_id, points, reason))
+
+
+# =========================
+# DAILY REWARD
+# =========================
+
+async def get_daily_reward(user_id: int):
+    return await fetchone("""
+        SELECT *
+        FROM daily_rewards
+        WHERE user_id = ?
+    """, (user_id,))
+
+
+async def set_daily_reward(
+    user_id: int,
+    last_claim: str,
+    streak: int
+):
+    await execute("""
+        INSERT INTO daily_rewards
+        (user_id, last_claim, streak)
+        VALUES (?, ?, ?)
+        ON CONFLICT(user_id)
+        DO UPDATE SET
+            last_claim = excluded.last_claim,
+            streak = excluded.streak
+    """, (user_id, last_claim, streak))
+
+
+# =========================
+# PLAYER STATS
+# =========================
+
+async def update_player_stats(
+    user_id: int,
+    games_played: int = 0,
+    games_won: int = 0,
+    games_lost: int = 0,
+    kills: int = 0,
+    deaths: int = 0
+):
+    await execute("""
+        UPDATE player_stats
+        SET games_played = games_played + ?,
+            games_won = games_won + ?,
+            games_lost = games_lost + ?,
+            kills = kills + ?,
+            deaths = deaths + ?
+        WHERE user_id = ?
+    """, (
+        games_played,
+        games_won,
+        games_lost,
+        kills,
+        deaths,
+        user_id
+    ))
+
+
+# =========================
+# MINI PROFILE
+# =========================
+
+async def get_mini_profile(user_id: int):
+    return await fetchone("""
+        SELECT *
+        FROM mini_profiles
+        WHERE user_id = ?
+    """, (user_id,))
+
+
+async def update_mini_profile(
+    user_id: int,
+    character_key: Optional[str] = None,
+    background_key: Optional[str] = None,
+    clothing_key: Optional[str] = None,
+    weapon_key: Optional[str] = None,
+    horse_key: Optional[str] = None
+):
+    await execute("""
+        UPDATE mini_profiles
+        SET character_key = COALESCE(?, character_key),
+            background_key = COALESCE(?, background_key),
+            clothing_key = COALESCE(?, clothing_key),
+            weapon_key = COALESCE(?, weapon_key),
+            horse_key = COALESCE(?, horse_key)
+        WHERE user_id = ?
+    """, (
+        character_key,
+        background_key,
+        clothing_key,
+        weapon_key,
+        horse_key,
+        user_id
+    ))
+
+
+# =========================
+# INACTIVITY
+# =========================
+
+async def update_activity(user_id: int):
+    await execute("""
+        INSERT INTO inactivity
+        (user_id, last_activity, warning_sent, removed)
+        VALUES (?, CURRENT_TIMESTAMP, 0, 0)
+        ON CONFLICT(user_id)
+        DO UPDATE SET
+            last_activity = CURRENT_TIMESTAMP,
+            warning_sent = 0,
+            removed = 0
+    """, (user_id,))
+
+
+async def get_inactivity(user_id: int):
+    return await fetchone("""
+        SELECT *
+        FROM inactivity
+        WHERE user_id = ?
+    """, (user_id,))
