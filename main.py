@@ -1,12 +1,12 @@
 import asyncio
 
-from aiogram import Bot, Dispatcher, F
+from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery
 
 from config import BOT_TOKEN, CREATOR_ID
 from database import init_db, get_user, create_user
-from keyboards import main_menu
+from keyboards import main_menu, language_menu
 
 
 dp = Dispatcher()
@@ -61,6 +61,14 @@ async def start_command(message: Message):
 async def menu_callback(callback: CallbackQuery):
     await callback.answer()
 
+    if callback.data == "language":
+        await callback.message.edit_text(
+            "🌐 <b>Tilni tanlang</b>\n\n"
+            "THRONE interfeysi va o‘yin xabarlarida foydalaniladigan tilni tanlang:",
+            reply_markup=language_menu()
+        )
+        return
+
     messages = {
         "cabinet": "👤 <b>KABINET</b>\n\nShaxsiy profilingiz shu yerda.",
         "kingdom": "🏰 <b>QIROLLIGIM</b>\n\nQirolligingizni boshqaring.",
@@ -75,16 +83,13 @@ async def menu_callback(callback: CallbackQuery):
         "rewards": "🎁 <b>BONUSLAR</b>\n\nKunlik va maxsus mukofotlar.",
         "black_market": "🕶️ <b>QORA BOZOR</b>\n\nNoyob takliflar.",
         "elite": "⚜️ <b>THRONE ELITE</b>\n\nPremium imkoniyatlar.",
-        "language": "🌐 <b>TIL</b>\n\nTilni tanlang.",
+        "language": "🌐 <b>TIL</b>",
         "ai": "🤖 <b>THRONE AI</b>\n\nYordamchi tez orada ishga tushadi.",
         "help": "❓ <b>YORDAM</b>\n\nTHRONE yordam markazi.",
         "settings": "⚙️ <b>SOZLAMALAR</b>\n\nBot sozlamalari."
     }
 
-    text = messages.get(
-        callback.data,
-        "👑 THRONE"
-    )
+    text = messages.get(callback.data, "👑 THRONE")
 
     await callback.message.edit_text(
         text,
