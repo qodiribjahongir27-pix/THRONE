@@ -41,3 +41,23 @@ def main_menu():
             ],
         ]
     )
+def language_menu():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🇺🇿 O‘zbek", callback_data="lang_uz"),
+                InlineKeyboardButton(text="🇷🇺 Русский", callback_data="lang_ru"),
+            ],
+            [
+                InlineKeyboardButton(text="🇬🇧 English", callback_data="lang_en"),
+                InlineKeyboardButton(text="🇹🇷 Türkçe", callback_data="lang_tr"),
+            ],
+            [
+                InlineKeyboardButton(text="🇸🇦 العربية", callback_data="lang_ar"),
+                InlineKeyboardButton(text="🇰🇬 Кыргызча", callback_data="lang_ky"),
+            ],
+            [
+                InlineKeyboardButton(text="🔙 Orqaga", callback_data="back_main"),
+            ],
+        ]
+    )
